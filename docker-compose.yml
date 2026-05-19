@@ -1,7 +1,3 @@
-# O campo "version" era obrigatório em versões antigas do Compose.
-# No Docker Compose v2 (atual) ele é ignorado — mas você vai vê-lo em
-# projetos mais antigos. Omitimos aqui para seguir o padrão moderno.
-
 services:
 
   # ---------------------------------------------------------------------------
