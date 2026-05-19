@@ -1,0 +1,12 @@
+# Força LF para todos os arquivos de texto no repositório.
+# Importante para projetos com Docker — scripts e configs Linux não
+# funcionam corretamente com quebras de linha CRLF do Windows.
+* text=auto eol=lf
+
+# Arquivos binários — não mexer nas quebras de linha
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
