@@ -1,0 +1,101 @@
+# O campo "version" era obrigatório em versões antigas do Compose.
+# No Docker Compose v2 (atual) ele é ignorado — mas você vai vê-lo em
+# projetos mais antigos. Omitimos aqui para seguir o padrão moderno.
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # POSTGRES — banco de dados principal
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    # Nome fixo para o container. Sem isso, o Docker gera nomes aleatórios
+    # tipo "chamados-postgres-1" — funciona, mas fica confuso em logs.
+    container_name: softcalls-postgres
+
+    # "unless-stopped": o container reinicia automaticamente se cair (ex: após
+    # reiniciar o PC), EXCETO se você parar manualmente com "docker compose down".
+    # Alternativa "always": reinicia sempre, inclusive após "docker compose down".
+    restart: unless-stopped
+
+    # Lê as variáveis do arquivo .env na raiz do projeto
+    env_file:
+      - .env
+
+    # Aqui repassamos as variáveis pro container usando a sintaxe ${VAR}.
+    # O Postgres oficial reconhece exatamente esses três nomes para criar
+    # o banco e o usuário na primeira inicialização.
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+    # Mapeamento de portas: "host:container"
+    # ${POSTGRES_PORT:-5432} significa: use a variável POSTGRES_PORT,
+    # e se ela não existir, use 5432 como padrão (o :- é o "valor default").
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+
+    volumes:
+      # Volume nomeado: o Docker gerencia onde fica no host.
+      # É aqui que os dados do banco ficam persistidos entre restarts.
+      - postgres_data:/var/lib/postgresql/data
+
+      # Bind mount: conecta um arquivo local a um caminho dentro do container.
+      # O Postgres executa automaticamente qualquer .sql em /docker-entrypoint-initdb.d/
+      # na PRIMEIRA vez que o banco é criado.
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    networks:
+      - softcalls-net
+
+    # Healthcheck: o Docker testa se o Postgres está realmente pronto para
+    # aceitar conexões (não só "rodando"). Outros serviços podem depender disso.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s   # testa a cada 10 segundos
+      timeout: 5s     # falha se não responder em 5 segundos
+      retries: 5      # após 5 falhas consecutivas, marca como "unhealthy"
+
+  # ---------------------------------------------------------------------------
+  # PGADMIN — interface visual do banco (apenas desenvolvimento)
+  # ---------------------------------------------------------------------------
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: softcalls-pgadmin
+    restart: unless-stopped
+
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+
+    ports:
+      - "${PGADMIN_PORT:-8080}:80"
+
+    # depends_on com condition: o pgAdmin só sobe DEPOIS que o Postgres
+    # passar no healthcheck. Sem isso, o pgAdmin tentaria conectar num
+    # banco que ainda está inicializando e falharia.
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - softcalls-net
+
+# =============================================================================
+# VOLUMES — declarados aqui para o Docker gerenciar o ciclo de vida deles
+# =============================================================================
+volumes:
+  postgres_data:
+    # driver "local" é o padrão — armazena no host gerenciado pelo Docker.
+    # Em produção existem drivers para S3, NFS, etc.
+    driver: local
+
+# =============================================================================
+# NETWORKS — rede interna isolada para os serviços se comunicarem por nome
+# =============================================================================
+networks:
+  softcalls-net:
+    # "bridge" é o driver padrão para desenvolvimento local.
+    # Cria uma rede virtual onde os containers se enxergam pelo nome do serviço.
+    driver: bridge
