@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Usuario {
+  id        String   @id @default(uuid())
+  nome      String
+  email     String   @unique
+  senha     String
+  perfil    Perfil
+  setor     Setor
+  createdAt DateTime @default(now())
+  chamados  Chamado[]
+}
+
+enum Perfil {
+  FUNCIONARIO
+  TECNICO
+  ADMIN
+}
+
+enum Setor {
+  RH
+  LOGISTICA
+  FINANCEIRO
+  RECEPCAO
+  ATENDIMENTO
+  ADMINISTRACAO
+}
+
+model Categoria {
+  id        String    @id @default(uuid())
+  nome      String    @unique
+  descricao String?
+  chamados  Chamado[]
+}
+
+model Chamado {
+  id          String    @id @default(uuid())
+  titulo      String
+  conteudo    String
+  status      Status    @default(ABERTO)
+  prazo       DateTime?
+  createdAt   DateTime  @default(now())
+  autorId     String
+  autor       Usuario   @relation(fields: [autorId], references: [id])
+  categoriaId String
+  categoria   Categoria @relation(fields: [categoriaId], references: [id])
+}
+
+enum Status {
+  ABERTO
+  EM_ANDAMENTO
+  RESOLVIDO
+  FECHADO
+}
