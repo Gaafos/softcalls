@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(wsl -e bash -c \"cd ~/projects/chamados && git push origin master 2>&1 && git push -u origin feat/docker-infra 2>&1\")"
+      "PowerShell(wsl -e bash -c \"cd ~/projects/chamados && git push origin master 2>&1 && git push -u origin feat/docker-infra 2>&1\")",
+      "Bash(test -f \"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\fiap\\\\projects\\\\chamados\\\\api\\\\tsconfig.json\")",
+      "Bash(docker compose *)",
+      "Bash(curl -s -X POST http://localhost:3001/auth/register -H 'Content-Type: application/json' -d '{\"nome\":\"João Silva\",\"email\":\"joao@teste.com\",\"senha\":\"123456\",\"perfil\":\"FUNCIONARIO\",\"setor\":\"RH\"}')",
+      "Bash(curl -s -X POST http://localhost:3001/auth/register -H 'Content-Type: application/json' -d '{\"nome\":\"Joao Silva\",\"email\":\"joao@teste.com\",\"senha\":\"123456\",\"perfil\":\"FUNCIONARIO\",\"setor\":\"RH\"}')",
+      "Bash(curl -s -X POST http://localhost:3001/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"joao@teste.com\",\"senha\":\"123456\"}')"
     ]
   }
 }
