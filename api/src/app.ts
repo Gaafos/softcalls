@@ -4,6 +4,8 @@ import fastifyJwt from '@fastify/jwt'
 import prismaPlugin from './plugins/prisma'
 import { healthRoutes } from './routes/health'
 import { authRoutes } from './routes/auth'
+import { categoriasRoutes } from './routes/categorias'
+import { chamadosRoutes } from './routes/chamados'
 
 export function buildApp() {
   const app = Fastify({ logger: true })
@@ -13,6 +15,8 @@ export function buildApp() {
   app.register(prismaPlugin)
   app.register(healthRoutes)
   app.register(authRoutes)
+  app.register(categoriasRoutes)
+  app.register(chamadosRoutes)
 
   return app
 }
