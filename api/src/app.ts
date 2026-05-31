@@ -10,7 +10,11 @@ import { chamadosRoutes } from './routes/chamados'
 export function buildApp() {
   const app = Fastify({ logger: true })
 
-  app.register(cors, { origin: true })
+  app.register(cors, {
+    origin: true,
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  })
   app.register(fastifyJwt, { secret: process.env.JWT_SECRET! })
   app.register(prismaPlugin)
   app.register(healthRoutes)
